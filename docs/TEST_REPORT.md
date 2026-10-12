@@ -41,3 +41,7 @@ Library 按规定使用最新 prepared-upload helper 尝试保存四个阶段产
 直接 instrumentation 已通过 20 项检查，覆盖搜索空结果、详情、收藏、播放/暂停/恢复、两种跳转、完成/重播、后台准备不自动播放、续播、返回、历史和来源失败提示。30 次性能采样仅体现无 KVM 软件模拟环境：媒体时钟约为墙钟 0.57 倍，不代表真机流畅。
 
 新增离线完整帧 Real-ESRGAN 2× 转码：4/4 帧从 64×36 到 128×72，视频 PTS 全部保持，23 个 AAC 包的内容及 PTS 全部保持；耗时 205.385 秒。详见 MILESTONE-4.md 和 android-enhancer.json。这与原先 160 像素采样预览是两个独立功能；仍不声称全分辨率实时播放或画质改善。缺少真机、长片和 Windows 原生验证。
+
+## 最新稳定性/同步/布局回归
+
+详见 MILESTONE-5.md：16 帧运动与切镜片段、取消/失败后重试、应用进程 PSS 采样、29 项 Android 流程、真实异步 onError、Activity 重建收藏恢复，以及桌面 7 项回归和真实渲染截图。AAC 编码延迟在外部复核中发现并修复；不能只比较 MediaExtractor 时间戳就声称音画同步。最新独立 FFprobe/FFmpeg 包时间戳、音频 payload、4 秒时长及 PCM 验证通过。实时全视频超分所需架构和环境详见 REALTIME-ARCHITECTURE.md。

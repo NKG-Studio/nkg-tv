@@ -1,0 +1,18 @@
+{
+  "host_os": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "device_nodes": {
+    "/dev/dri": false,
+    "/dev/nvidia0": false,
+    "/dev/kvm": false
+  },
+  "executables": {
+    "nvidia-smi": null,
+    "vulkaninfo": null,
+    "wine": null,
+    "wine64": null,
+    "Xvfb": null,
+    "weston": null
+  },
+  "ncnn_android_vulkan_build": false,
+  "scope": "Cloud Linux container; absence is for exposed devices/tools only, not proof of physical host hardware"
+}

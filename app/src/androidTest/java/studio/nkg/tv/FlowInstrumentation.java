@@ -32,6 +32,10 @@ public final class FlowInstrumentation extends Instrumentation {
     private int position(){AtomicInteger v=new AtomicInteger();main(()->{MediaPlayer p=(MediaPlayer)field("player");v.set(p==null?-1:p.getCurrentPosition());});return v.get();}
     private boolean playing(){AtomicBoolean v=new AtomicBoolean();main(()->{MediaPlayer p=(MediaPlayer)field("player");v.set(p!=null&&p.isPlaying());});return v.get();}
     private void invoke(String method,Class<?> type,Object value){main(()->{try{Method m=MainActivity.class.getDeclaredMethod(method,type);m.setAccessible(true);m.invoke(activity,value);}catch(Exception e){throw new RuntimeException(e);}});}
+    private boolean keepsScreen(){AtomicBoolean v=new AtomicBoolean();main(()->v.set((activity.getWindow().getAttributes().flags&WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)!=0));return v.get();}
+    private void snapshot(String name)throws Exception{
+        Thread.sleep(2500);android.graphics.Bitmap b=getUiAutomation().takeScreenshot();if(b==null)throw new AssertionError("screenshot failed");java.io.File dir=new java.io.File(getTargetContext().getFilesDir(),"screenshots");dir.mkdirs();try(java.io.OutputStream out=new java.io.FileOutputStream(new java.io.File(dir,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out);}b.recycle();
+    }
     @Override public void onCreate(Bundle args){super.onCreate(args);start();}
     @Override public void onStart(){
         Bundle result=new Bundle();int code=0;
@@ -39,14 +43,14 @@ public final class FlowInstrumentation extends Instrumentation {
             getTargetContext().getSharedPreferences("nkg",0).edit().clear().commit();
             Intent launch=new Intent(getTargetContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activity=(MainActivity)startActivitySync(launch);
-            until("home",()->has("你的私人放映室"),15000);
+            until("home",()->has("你的私人放映室"),15000);snapshot("android-home");
             main(()->{ViewGroup body=(ViewGroup)field("body");for(int i=0;i<body.getChildCount();i++)if(body.getChildAt(i) instanceof EditText)((EditText)body.getChildAt(i)).setText("not-found");});
             click("搜索");until("search empty",()->has("没有找到结果"),5000);
             main(()->{ViewGroup body=(ViewGroup)field("body");for(int i=0;i<body.getChildCount();i++)if(body.getChildAt(i) instanceof EditText)((EditText)body.getChildAt(i)).setText("");});click("搜索");
             click("查看详情");click("收藏影片");until("favorite add",()->has("取消收藏"),5000);
             click("开始播放");until("prepared and advancing",()->playing()&&position()>500,30000);
             click("暂停");int paused=position();Thread.sleep(700);if(Math.abs(position()-paused)>150)throw new AssertionError("pause advanced");
-            checks.put("pause freezes clock");click("继续");until("resume",()->playing()&&position()>paused+200,10000);
+            if(keepsScreen())throw new AssertionError("paused keeps screen");checks.put("pause clears screen flag");checks.put("pause freezes clock");click("继续");until("resume",()->playing()&&position()>paused+200,10000);
             main(()->{MediaPlayer p=(MediaPlayer)field("player");p.seekTo(5000);});
             until("seek 5s",()->position()>=4800&&position()<10000,15000);
             // Exercise actual seek widget listener as well.
@@ -54,12 +58,12 @@ public final class FlowInstrumentation extends Instrumentation {
             until("seek control 7s",()->position()>=6800,15000);
             main(()->activity.onBackPressed());until("back to detail",()->has("继续播放 ·"),5000);
             click("继续播放 ·");until("resume stored position",()->playing()&&position()>5000,30000);
-            main(()->{MediaPlayer p=(MediaPlayer)field("player");p.seekTo(p.getDuration()-800);});until("completion",()->has("播放结束"),60000);click("重播");until("replay clock reset",()->playing()&&position()<5000,10000);
+            main(()->{MediaPlayer p=(MediaPlayer)field("player");p.seekTo(p.getDuration()-800);});until("completion",()->has("播放结束"),60000);if(keepsScreen())throw new AssertionError("ended keeps screen");checks.put("completion clears screen flag");click("重播");until("replay clock reset",()->playing()&&position()<5000,10000);
             main(()->activity.onBackPressed());
             main(()->{try{Method m=MainActivity.class.getDeclaredMethod("play",Catalog.Video.class);m.setAccessible(true);m.invoke(activity,field("demo"));callActivityOnPause(activity);}catch(Exception e){throw new RuntimeException(e);}});
             until("prepared while background",()->{AtomicBoolean ready=new AtomicBoolean();main(()->ready.set((boolean)field("prepared")));return ready.get();},30000);
             if(playing())throw new AssertionError("background autostart");checks.put("no playback after background preparation");
-            main(()->callActivityOnResume(activity));click("继续");until("foreground explicit resume",()->playing(),10000);
+            main(()->callActivityOnResume(activity));click("继续");until("foreground explicit resume",()->playing(),10000);if(!keepsScreen())throw new AssertionError("resume fails screen flag");checks.put("explicit resume sets screen flag");snapshot("android-player");
             main(()->((MediaPlayer)field("player")).setLooping(true));
             for(int i=0;i<30;i++){
                 Thread.sleep(1000);JSONObject sample=new JSONObject().put("elapsed_ms",SystemClock.elapsedRealtime()-started).put("position_ms",position()).put("playing",playing()).put("pss_kib",Debug.getPss()).put("process_cpu_ms",android.os.Process.getElapsedCpuTime());samples.put(sample);
@@ -68,10 +72,19 @@ public final class FlowInstrumentation extends Instrumentation {
             checks.put("30s sustained looping playback");
             main(()->activity.onBackPressed());click("历史");until("history contains demo",()->has("像素实验室"),5000);
             click("收藏");until("favorite persisted",()->has("像素实验室"),5000);
-            // Local missing asset exercises real preparation error without any network route.
+            // Disallowed scheme exercises synchronous source validation only.
             invoke("play",Catalog.Video.class,new Catalog.Video("missing","失败测试","","asset:missing.mp4","instrumentation"));
             until("invalid source error",()->has("播放失败"),10000);
             main(()->activity.onBackPressed());until("error back navigation",()->has("失败测试"),5000);
+            java.io.File corrupt=new java.io.File(getTargetContext().getFilesDir(),"enhanced/corrupt-test.mp4");corrupt.getParentFile().mkdirs();try(java.io.FileOutputStream out=new java.io.FileOutputStream(corrupt)){out.write(new byte[4096]);}
+            invoke("play",Catalog.Video.class,new Catalog.Video("corrupt","损坏媒体","合法本机路径损坏媒体",android.net.Uri.fromFile(corrupt).toString(),"原创错误夹具"));
+            until("asynchronous MediaPlayer error",()->has("播放失败（"),15000);snapshot("android-corrupt-error");
+            if(keepsScreen())throw new AssertionError("error keeps screen");checks.put("error clears screen flag");main(()->activity.onBackPressed());
+            main(()->activity.finish());activity=(MainActivity)startActivitySync(new Intent(getTargetContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            until("activity recreated",()->has("你的私人放映室"),15000);click("收藏");until("favorite survives Activity recreation",()->has("像素实验室"),10000);snapshot("android-favorites-restored");
+            invoke("detail",Catalog.Video.class,new Catalog.Video("long",new String(new char[256]).replace('\0','长'),"描述保留在滚动区域", "https://example.org/a.mp4","布局测试"));snapshot("android-long-title");
+            main(()->{View body=(View)field("body");if(((View)body.getParent()).getHeight()<200)throw new AssertionError("long title consumes content viewport");});checks.put("long-title header leaves scrollable content");
+            click("返回发现");click("来源");snapshot("android-sources");main(()->activity.onBackPressed());until("sources back home",()->has("你的私人放映室"),10000);
             result.putString("stream",new JSONObject().put("passed",true).put("checks",checks).put("samples",samples).toString()+"\n");
         }catch(Throwable t){code=1;result.putString("stream","FAIL "+t+"\n"+android.util.Log.getStackTraceString(t)+"\nchecks="+checks+"\nsamples="+samples);}
         if(activity!=null)main(()->activity.finish());finish(code,result);

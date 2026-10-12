@@ -2,6 +2,8 @@
 
 在空仓库上独立实现的 Android 影视播放器预览。目标是 Android / iOS / PC；**当前已有 Android APK 和 Windows x64 EXE 预览，Windows 原生运行未验证；iOS 尚未实现或构建**。Rust 共享核心及 C ABI 可移植，并不等于三端已完成。
 
+**最新验收目标：Android 和 Windows 播放中真实 AI 超分持续 ≥30 增强 FPS。当前版本未达标；离线转码、抽帧、原画回退和重复帧都不能替代该目标。** Android 目标至少为骁龙 8 Gen 3；按原视频分辨率输入，禁止统一降至 720p；PC GPU 尚待确认，输出须等比适配实际播放器内容区域。云端 Vulkan 探针仅发现 SwiftShader CPU 软件设备。GPU 管线、真实计数接入和目标硬件实测仍未完成，详见 `docs/REALTIME-ARCHITECTURE.md`。
+
 ## 当前可用
 
 - 原生中文界面：本地目录搜索、详情、播放/暂停/进度、收藏、历史、续播、返回导航。
@@ -9,7 +11,7 @@
 - 离线原创 12 秒 MP4 测试片，系统 MediaPlayer 解码（MP4/HLS 支持取决于设备，不支持 DRM 绕过）。
 - 内置官方 **Real-ESRGAN animevideov3 ×2**，ncnn CPU 推理，默认关闭。连续视频帧通过 TextureView 读回、推理、ImageView 呈现，保留原片音频。
 - **超分是低分辨率动画采样预览**：宽度 160 像素、最高约 8 fps，350 ms 慢帧连续 3 次自动关闭。不是全分辨率实时电影修复；抽帧、读回、时延可能降低观看体验。真人电影效果未验证。无 HDR/DRM/时域重建支持。
-- 新增独立的「逐帧生成 AI 2× 副本」：原分辨率逐帧推理、2× AVC 编码、保留视频时间戳与压缩音轨，副本加入本机历史。当前仅支持偶数尺寸、最高 320×180、最长一小时的 SDR 渐进式 MP4；离线处理，可取消，无实时性能承诺。模拟器已验证 4 帧完整转码，尚无长片稳定性数据。
+- 新增独立的「逐帧生成 AI 2× 副本」：原分辨率逐帧推理、2× AVC 编码、保留视频时间戳与压缩音轨，副本加入本机历史。当前仅支持偶数尺寸、最高 320×180、最长一小时的单音轨 BT.601/BT.709 SDR 渐进式 MP4（拒绝多音轨、BT.2020 和 HDR）；离线处理，可取消，无实时性能承诺。模拟器已验证 4 帧完整转码，尚无长片稳定性数据。
 - 额外 Rust TinySR2 自训模型用于可复现核心/JNI 测试，**不作为成熟模型的替代或默认视频增强**。
 
 ## 默认订阅的重要限制
@@ -56,7 +58,7 @@ APK：`app/build/outputs/apk/debug/app-debug.apk`，包名 `studio.nkg.tv`，And
 - `tools/` 构建/训练/原片生成。
 - `tests/` 主机 JNI/模型烟测；Android JVM 测试位于 `app/src/test/`。
 - `desktop/` Windows 原生 WebView2 窗口、内容访问与本机状态、Rust WASM 实验推理。
-- `docs/TEST_REPORT.md` 实际验证结果与未验证事项；最新 Android 流程和完整帧测试见 `docs/MILESTONE-4.md`。
+- `docs/TEST_REPORT.md` 实际验证结果与未验证事项；最新稳定性、色彩/音轨策略与截图见 `docs/MILESTONE-5.md`；实时架构缺口见 `docs/REALTIME-ARCHITECTURE.md`。
 - `THIRD_PARTY.md` 官方来源、许可证和模型 SHA256。
 
 Rust 检查：`cargo test --manifest-path core/Cargo.toml`、`cargo clippy --manifest-path core/Cargo.toml --all-targets -- -D warnings`、`cargo fmt --manifest-path core/Cargo.toml --check`。

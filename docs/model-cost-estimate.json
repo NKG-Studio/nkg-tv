@@ -1,0 +1,31 @@
+{
+  "model": "realesr-animevideov3-x2",
+  "convolution_layers": 18,
+  "convolution_weight_MACs_per_input_pixel": 619200,
+  "internal_upsample": 4,
+  "final_downsample_factor": 0.5,
+  "scope": "Dense arithmetic estimate from bundled ncnn parameters, excludes activations/interpolation/borders/driver/memory; not device throughput",
+  "scenarios": [
+    {
+      "input_width": 320,
+      "input_height": 180,
+      "MACs_per_frame": 35665920000,
+      "FLOPs_per_frame_at_2_ops_per_MAC": 71331840000,
+      "required_TFLOPs_per_second_at_30fps": 2.1399552
+    },
+    {
+      "input_width": 1280,
+      "input_height": 720,
+      "MACs_per_frame": 570654720000,
+      "FLOPs_per_frame_at_2_ops_per_MAC": 1141309440000,
+      "required_TFLOPs_per_second_at_30fps": 34.2392832
+    },
+    {
+      "input_width": 1920,
+      "input_height": 1080,
+      "MACs_per_frame": 1283973120000,
+      "FLOPs_per_frame_at_2_ops_per_MAC": 2567946240000,
+      "required_TFLOPs_per_second_at_30fps": 77.0383872
+    }
+  ]
+}

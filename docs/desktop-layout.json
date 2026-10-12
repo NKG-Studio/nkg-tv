@@ -1,0 +1,141 @@
+{
+  "passed": true,
+  "scope": "Linux Chromium rendering of desktop UI, not Windows screenshot or smoothness measurement",
+  "checks": [
+    {
+      "width": 1180,
+      "page": "home",
+      "viewport": 1180,
+      "scroll": 1180,
+      "body": 1180,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 1180,
+      "page": "long-title",
+      "viewport": 1180,
+      "scroll": 1180,
+      "body": 1180,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 1180,
+      "page": "detail",
+      "viewport": 1180,
+      "scroll": 1180,
+      "body": 1180,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 1180,
+      "page": "player",
+      "viewport": 1180,
+      "scroll": 1180,
+      "body": 1180,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 1180,
+      "page": "sources",
+      "viewport": 1180,
+      "scroll": 1180,
+      "body": 1180,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 900,
+      "page": "home",
+      "viewport": 900,
+      "scroll": 900,
+      "body": 900,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 900,
+      "page": "long-title",
+      "viewport": 900,
+      "scroll": 900,
+      "body": 900,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 900,
+      "page": "detail",
+      "viewport": 900,
+      "scroll": 900,
+      "body": 900,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 900,
+      "page": "player",
+      "viewport": 900,
+      "scroll": 900,
+      "body": 900,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 900,
+      "page": "sources",
+      "viewport": 900,
+      "scroll": 900,
+      "body": 900,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 600,
+      "page": "home",
+      "viewport": 600,
+      "scroll": 600,
+      "body": 600,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 600,
+      "page": "long-title",
+      "viewport": 600,
+      "scroll": 600,
+      "body": 600,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 600,
+      "page": "detail",
+      "viewport": 600,
+      "scroll": 600,
+      "body": 600,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 600,
+      "page": "player",
+      "viewport": 600,
+      "scroll": 600,
+      "body": 600,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 600,
+      "page": "sources",
+      "viewport": 600,
+      "scroll": 600,
+      "body": 600,
+      "dialogOverflow": 0,
+      "noHorizontalOverflow": true
+    }
+  ]
+}

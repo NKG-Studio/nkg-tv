@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "checks": [
+    "decoder output standard/range override extractor; absent transfer retained",
+    "decoder SDR BT2020 rejected",
+    {
+      "fixture": "multi-audio-test.mp4",
+      "rejected_before_inference": true,
+      "partial_output_removed": true,
+      "error": "检测到多音轨；当前仅支持单音轨副本，已停止，未丢弃任何音轨。请先提供单音轨文件"
+    },
+    {
+      "fixture": "bt2020-test.mp4",
+      "rejected_before_inference": true,
+      "partial_output_removed": true,
+      "error": "不支持该色彩空间（99）；当前仅支持 BT.601 / BT.709，未转换"
+    },
+    {
+      "source_track_format": "{max-bitrate=13788, track-id=1, level=1, mime=video/avc, frame-count=16, profile=8, language=und, display-width=64, csd-1=java.nio.HeapByteBuffer[pos=0 lim=10 cap=10], durationUs=4000000, display-height=36, width=64, max-input-size=1811, frame-rate=4, height=36, csd-0=java.nio.HeapByteBuffer[pos=0 lim=27 cap=27]}"
+    },
+    {
+      "source_track_format": "{max-bitrate=69532, sample-rate=44100, track-id=2, mime=audio/mp4a-latm, profile=2, bitrate=69532, language=und, aac-profile=2, encoder-delay=1024, durationUs=4023219, channel-count=1, encoder-padding=0, max-input-size=318, csd-0=java.nio.HeapByteBuffer[pos=0 lim=5 cap=5]}"
+    }
+  ]
+}

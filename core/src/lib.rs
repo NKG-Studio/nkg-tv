@@ -1,4 +1,6 @@
 //! Portable, dependency-free TinySR2 inference. Native platforms own media decode/UI.
+pub mod layout;
+pub mod realtime;
 mod weights;
 use weights::{B1, B2, W1, W2};
 

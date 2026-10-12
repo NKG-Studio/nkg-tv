@@ -1,0 +1,3 @@
+vkCreateInstance=0
+enumerate=0 count=1
+device=SwiftShader Device (Subzero) type=4 vendor=6880 api=4206592 driver=20971520

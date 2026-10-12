@@ -4,6 +4,8 @@
     "bad catalog does not discard favorites",
     "bad catalog does not discard history",
     "late response cannot replace imported source",
+    "late response after navigation is discarded",
+    "JS title UTF16 limits match native Go: 256 accepted, 257 or 129 emoji rejected",
     "CORS-enabled remote media permits Rust frame inference",
     "no-CORS media falls back to original playback"
   ],

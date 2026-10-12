@@ -23,3 +23,5 @@ Implemented: local catalog search, details, MP4 playback, native video controls,
 Windows AI is currently the small Rust TinySR2 WASM experimental model on sampled frames, disabled by default. It is **not** the Android ncnn mature animation model and has not demonstrated film quality benefits. Cross-origin video readback without CORS fails safely and returns to original playback. This remains a preview, not final acceptance.
 
 Linux browser UI tests do not establish that the Windows native binary works on Windows; actual Windows execution, GPU behavior and sustained performance are still unverified. The EXE is unsigned (no Authenticode certificate); no paid certificate/service used.
+
+WebView2 Runtime 隐私：本应用不集成分析 SDK，但微软运行时本身可能收集必需诊断数据，并默认启用 SmartScreen。参见微软官方说明 https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/data-privacy 。这不同于应用自己的本机历史/收藏。

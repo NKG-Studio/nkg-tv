@@ -1,0 +1,12 @@
+=== RUN   TestCatalog
+--- PASS: TestCatalog (0.00s)
+=== RUN   TestURLs
+--- PASS: TestURLs (0.00s)
+=== RUN   TestTitlePersistenceLimits
+--- PASS: TestTitlePersistenceLimits (0.00s)
+=== RUN   TestNativeBridgeRoundTrip
+--- PASS: TestNativeBridgeRoundTrip (0.00s)
+=== RUN   TestConcurrentSavesRemainComplete
+--- PASS: TestConcurrentSavesRemainComplete (0.00s)
+PASS
+ok  	nkg.tv/desktop	1.020s

@@ -1,0 +1,8 @@
+const {chromium}=require('playwright'),fs=require('fs');
+(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});const p=await b.newPage({viewport:{width:1180,height:780}});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('http://127.0.0.1:8765');await p.getByText('把好故事，留给大屏幕。').waitFor();
+ const begin=Date.now();for(let i=0;i<20;i++){for(const route of ['sources','favorites','history','home'])await p.locator('[data-page="'+route+'"]').click();}const navigationMs=Date.now()-begin;
+ await p.locator('.hero .primary').click();await p.waitForFunction(()=>document.querySelector('video')?.currentTime>.2);await p.evaluate(()=>{document.querySelector('video').loop=true;window.__longTasks=[];new PerformanceObserver(list=>window.__longTasks.push(...list.getEntries().map(x=>x.duration))).observe({type:'longtask',buffered:false});});
+ const samples=[];for(let i=0;i<30;i++){await p.waitForTimeout(1000);samples.push(await p.evaluate(()=>{const v=document.querySelector('video'),q=v.getVideoPlaybackQuality();return {wall:performance.now(),time:v.currentTime,paused:v.paused,decoded:q.totalVideoFrames,dropped:q.droppedVideoFrames,heap:performance.memory?.usedJSHeapSize||null};}));}
+ const longTasks=await p.evaluate(()=>window.__longTasks);const passed=!errors.length&&samples.every(x=>!x.paused)&&samples.at(-1).decoded>samples[0].decoded+300;
+ fs.writeFileSync('artifacts/desktop-stability.json',JSON.stringify({passed,scope:'Linux headless Chromium UI; not Windows execution or visible display smoothness',navigationTransitions:80,navigationMs,longTasks,samples,pageErrors:errors},null,2));await b.close();if(!passed)process.exitCode=1;
+})().catch(e=>{console.error(e);process.exit(1)});

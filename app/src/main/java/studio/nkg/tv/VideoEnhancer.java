@@ -25,7 +25,7 @@ final class VideoEnhancer {
         MediaExtractor ex=new MediaExtractor();
         try{
             if(source.equals("asset:demo.mp4")){try(AssetFileDescriptor fd=context.getAssets().openFd("demo.mp4")){ex.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}}
-            else if(source.equals("asset:enhance-test.mp4")){try(AssetFileDescriptor fd=context.getAssets().openFd("enhance-test.mp4")){ex.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}}
+            else if(source.equals("asset:enhance-test.mp4")||source.equals("asset:motion-cut-test.mp4")||source.equals("asset:multi-audio-test.mp4")||source.equals("asset:bt2020-test.mp4")){try(AssetFileDescriptor fd=context.getAssets().openFd(source.substring(6))){ex.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}}
             else {Net.checked(source);ex.setDataSource(source,new HashMap<>());}
             return ex;
         }catch(Exception e){ex.release();throw new IOException("无法打开渐进式 MP4："+e.getMessage(),e);}
@@ -38,18 +38,16 @@ final class VideoEnhancer {
         boolean ok=false,muxStarted=false;int videoOut=-1,audioOut=-1;
         try{
             video=open(source);if(video.getDrmInitData()!=null)throw new IOException("不支持 DRM 内容");
-            int track=-1,audioTrack=-1;MediaFormat format=null,audioFormat=null;
-            for(int i=0;i<video.getTrackCount();i++){MediaFormat f=video.getTrackFormat(i);String mime=f.getString(MediaFormat.KEY_MIME);if(mime!=null&&mime.startsWith("video/")&&track<0){track=i;format=f;}if(mime!=null&&mime.startsWith("audio/")&&audioTrack<0){audioTrack=i;audioFormat=f;}}
+            int track=-1,audioTrack=-1,audioCount=0;MediaFormat format=null,audioFormat=null;
+            for(int i=0;i<video.getTrackCount();i++){MediaFormat f=video.getTrackFormat(i);String mime=f.getString(MediaFormat.KEY_MIME);if(mime!=null&&mime.startsWith("video/")&&track<0){track=i;format=f;}if(mime!=null&&mime.startsWith("audio/")){audioCount++;if(audioTrack<0){audioTrack=i;audioFormat=f;}}}
+            EnhancementPolicy.audioTracks(audioCount);
             if(format==null)throw new IOException("没有视频轨");
             int w=format.getInteger(MediaFormat.KEY_WIDTH),h=format.getInteger(MediaFormat.KEY_HEIGHT);
             if(w<2||h<2||w>320||h>180||(w&1)!=0||(h&1)!=0)throw new IOException("当前完整帧增强仅支持偶数尺寸、最高 320×180；不会先降低原片分辨率");
-            int transfer=format.containsKey(MediaFormat.KEY_COLOR_TRANSFER)?format.getInteger(MediaFormat.KEY_COLOR_TRANSFER):MediaFormat.COLOR_TRANSFER_SDR_VIDEO;
-            if(transfer==MediaFormat.COLOR_TRANSFER_ST2084||transfer==MediaFormat.COLOR_TRANSFER_HLG)throw new IOException("暂不支持 HDR");
+            int[] color=color(format,new int[]{MediaFormat.COLOR_STANDARD_BT601_PAL,MediaFormat.COLOR_RANGE_LIMITED,MediaFormat.COLOR_TRANSFER_SDR_VIDEO});
             long duration=format.containsKey(MediaFormat.KEY_DURATION)?format.getLong(MediaFormat.KEY_DURATION):0;
             if(duration<=0||duration>3600_000_000L)throw new IOException("需要时长有效且不超过一小时的渐进式 MP4");
             long estimate=duration/1_000_000*300_000+20_000_000;if(dir.getUsableSpace()<estimate)throw new IOException("增强副本所需空间不足");
-            boolean bt709=format.containsKey(MediaFormat.KEY_COLOR_STANDARD)&&format.getInteger(MediaFormat.KEY_COLOR_STANDARD)==MediaFormat.COLOR_STANDARD_BT709;
-            boolean full=format.containsKey(MediaFormat.KEY_COLOR_RANGE)&&format.getInteger(MediaFormat.KEY_COLOR_RANGE)==MediaFormat.COLOR_RANGE_FULL;
             video.selectTrack(track);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT,MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
             decoder=MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME));decoder.configure(format,null,null,0);decoder.start();
@@ -79,9 +77,10 @@ final class VideoEnhancer {
                 }
                 if(!decodeDone){
                     int out=decoder.dequeueOutputBuffer(decoded,1000);
-                    if(out>=0){
+                    if(out==MediaCodec.INFO_OUTPUT_FORMAT_CHANGED){color=color(decoder.getOutputFormat(),color);worked=true;}
+                    else if(out>=0){
                         if(decoded.size>0){
-                            int[] rgb;try(Image image=decoder.getOutputImage(out)){if(image==null)throw new IOException("解码器不提供可读 YUV 帧");rgb=readImage(image,w,h,bt709,full);}
+                            int[] rgb;try(Image image=decoder.getOutputImage(out)){if(image==null)throw new IOException("解码器不提供可读 YUV 帧");rgb=readImage(image,w,h,color[0]==MediaFormat.COLOR_STANDARD_BT709,color[1]==MediaFormat.COLOR_RANGE_FULL);}
                             long pts=decoded.presentationTimeUs;decoder.releaseOutputBuffer(out,false);out=-1;
                             int[] enhanced=Core.upscaleAnime(rgb,w,h);check();if(enhanced==null)throw new IOException("神经网络推理失败");
                             int ei;long queueDeadline=SystemClock.elapsedRealtime()+30000;while((ei=encoder.dequeueInputBuffer(1000))<0){check();if(SystemClock.elapsedRealtime()>queueDeadline)throw new IOException("编码输入超时");int o=encoder.dequeueOutputBuffer(encoded,1000);
@@ -104,7 +103,13 @@ final class VideoEnhancer {
                 audio=open(source);audio.selectTrack(audioTrack);ByteBuffer buffer=ByteBuffer.allocateDirect(2*1024*1024);MediaCodec.BufferInfo info=new MediaCodec.BufferInfo();
                 while(true){check();int size=audio.readSampleData(buffer,0);if(size<0)break;info.set(0,size,audio.getSampleTime(),flags(audio.getSampleFlags()));muxer.writeSampleData(audioOut,buffer,info);audio.advance();}
             }
-            muxer.stop();muxStarted=false;ok=true;return output;
+            muxer.stop();muxStarted=false;muxer.release();muxer=null;
+            if(audioFormat!=null){
+                int delay=audioFormat.containsKey(MediaFormat.KEY_ENCODER_DELAY)?audioFormat.getInteger(MediaFormat.KEY_ENCODER_DELAY):0;
+                int padding=audioFormat.containsKey(MediaFormat.KEY_ENCODER_PADDING)?audioFormat.getInteger(MediaFormat.KEY_ENCODER_PADDING):0;
+                Mp4AudioTiming.preserve(output,audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),delay,padding,audioFormat.getLong(MediaFormat.KEY_DURATION));
+            }
+            ok=true;return output;
         }finally{
             if(decoder!=null){try{decoder.stop();}catch(Exception ignored){}decoder.release();}
             if(encoder!=null){try{encoder.stop();}catch(Exception ignored){}encoder.release();}
@@ -112,6 +117,11 @@ final class VideoEnhancer {
             if(muxer!=null){if(muxStarted)try{muxer.stop();}catch(Exception ignored){}muxer.release();}
             if(!ok)output.delete();
         }
+    }
+    static int[] color(MediaFormat f,int[] fallback)throws IOException {
+        int[] result=fallback.clone();String[] keys={MediaFormat.KEY_COLOR_STANDARD,MediaFormat.KEY_COLOR_RANGE,MediaFormat.KEY_COLOR_TRANSFER};
+        for(int i=0;i<keys.length;i++)if(f.containsKey(keys[i]))result[i]=f.getInteger(keys[i]);
+        EnhancementPolicy.color(result[0],result[1],result[2]);return result;
     }
     private static int flags(int flags)throws IOException{if((flags&(MediaExtractor.SAMPLE_FLAG_ENCRYPTED|MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME))!=0)throw new IOException("不支持加密或不完整样本");return (flags&MediaExtractor.SAMPLE_FLAG_SYNC)!=0?MediaCodec.BUFFER_FLAG_KEY_FRAME:0;}
     private static int clamp(double x){return Math.max(0,Math.min(255,(int)Math.round(x)));}

@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "scope": "Android 10 QEMU compositor screenshots; not physical device",
+  "screenshots": [
+    {
+      "file": "android-home.png",
+      "width": 540,
+      "height": 960
+    },
+    {
+      "file": "android-long-title.png",
+      "width": 540,
+      "height": 960
+    },
+    {
+      "file": "android-sources.png",
+      "width": 540,
+      "height": 960
+    },
+    {
+      "file": "android-favorites-restored.png",
+      "width": 540,
+      "height": 960
+    },
+    {
+      "file": "android-corrupt-error.png",
+      "width": 540,
+      "height": 960
+    },
+    {
+      "file": "android-player.png",
+      "width": 540,
+      "height": 960
+    }
+  ]
+}

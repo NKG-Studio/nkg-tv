@@ -47,7 +47,7 @@ public final class MainActivity extends Activity {
     private void page(String title) {
         root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(18),dp(12),dp(18),dp(12)); root.setBackgroundColor(BG);
         root.setOnApplyWindowInsetsListener((v,insets)-> { v.setPadding(dp(18),dp(12)+insets.getSystemWindowInsetTop(),dp(18),dp(12)+insets.getSystemWindowInsetBottom()); return insets; });
-        root.addView(text("NKG / TV",15,MINT)); root.addView(text(title,28,Color.WHITE));
+        root.addView(text("NKG / TV",15,MINT)); TextView heading=text(title,28,Color.WHITE);heading.setMaxLines(2);heading.setEllipsize(android.text.TextUtils.TruncateAt.END);root.addView(heading);
         ScrollView scroll=new ScrollView(this); body=new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); scroll.addView(body); root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1)); setContentView(root);
     }
     private void nav() { LinearLayout row=new LinearLayout(this); for(String label:new String[]{"发现","收藏","历史","来源"}) { Button b=button(label,()->{ if(label.equals("发现")) home(); else if(label.equals("来源")) sources(); else saved(label.equals("收藏")); }); row.addView(b,new LinearLayout.LayoutParams(0,-2,1)); } root.addView(row); }
@@ -66,10 +66,10 @@ public final class MainActivity extends Activity {
         box.addView(text(v.source,12,MINT)); box.addView(text(v.title,20,Color.WHITE)); box.addView(text(v.description,13,MUTED)); box.addView(button("查看详情",()->detail(v)));
     }
     private void detail(Catalog.Video v) {
-        current=v; screen="detail"; page(v.title); body.addView(text(v.source,14,MINT)); body.addView(text(v.description,16,MUTED));
+        current=v; screen="detail"; page(v.title); body.addView(text(v.title,20,Color.WHITE)); body.addView(text(v.source,14,MINT)); body.addView(text(v.description,16,MUTED));
         body.addView(button(store.position(v)>0?"继续播放 · "+store.position(v)/1000+" 秒":"开始播放",()->play(v)));
         body.addView(button("逐帧生成 AI 2× 副本",()->enhance(v)));
-        body.addView(text("完整处理每一帧后再播放，保留音频与时间戳。当前限最高 320×180 SDR 渐进式 MP4；不会先降采样。处理可能明显慢于片长，可取消。",12,MUTED));
+        body.addView(text("完整处理每一帧后再播放，保留单音轨与时间戳；多音轨会拒绝转换。当前限最高 320×180 BT.601/BT.709 SDR 渐进式 MP4；缺失色彩信息按低分辨率 BT.601 限幅处理，不支持广色域；不会先降采样。处理可能明显慢于片长，可取消。",12,MUTED));
         body.addView(button(store.favorite(v)?"取消收藏":"收藏影片",()->{store.toggle(v); detail(v);}));
         body.addView(text("播放地址："+v.url,12,MUTED)); body.addView(text("仅播放你有权访问的内容。支持系统解码器可播放的 MP4/HLS；不绕过 DRM。",13,MUTED)); body.addView(button("返回发现",this::home)); nav();
     }
@@ -101,7 +101,7 @@ public final class MainActivity extends Activity {
         FrameLayout stage=new FrameLayout(this); texture=new TextureView(this); enhanced=new ImageView(this); enhanced.setScaleType(ImageView.ScaleType.FIT_CENTER); enhanced.setVisibility(View.INVISIBLE); stage.addView(texture,new FrameLayout.LayoutParams(-1,-1));stage.addView(enhanced,new FrameLayout.LayoutParams(-1,-1));body.addView(stage,new LinearLayout.LayoutParams(-1,dp(220)));
         playbackStatus=text("正在准备播放…",13,MUTED);body.addView(playbackStatus);
         seek=new SeekBar(this);body.addView(seek);seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){public void onStartTrackingTouch(SeekBar s){} public void onProgressChanged(SeekBar s,int p,boolean user){} public void onStopTrackingTouch(SeekBar s){if(prepared&&player!=null){generation++;completed=false;enhanced.setVisibility(View.INVISIBLE);player.seekTo(s.getProgress());}}});
-        playButton=button("暂停",()-> { if(prepared&&player!=null) {if(player.isPlaying()){player.pause();playButton.setText("继续");}else {completed=false;player.start();playButton.setText("暂停");}} });body.addView(playButton);
+        playButton=button("正在准备",()-> { if(prepared&&player!=null) {if(player.isPlaying()){setPlaying(false);}else {completed=false;setPlaying(true);}} });playButton.setEnabled(false);body.addView(playButton);
         Switch ai=new Switch(this);aiToggle=ai;ai.setText("动画 AI 2× · 默认关闭");ai.setTextColor(MINT);ai.setEnabled(modelReady); body.addView(ai);
         body.addView(text("Real-ESRGAN animevideov3：真实神经网络逐帧推理，偏向动画。当前是 160 像素宽采样预览，最高约 8 帧/秒；不是全分辨率实时增强。真人片可能失真，连续慢帧自动恢复原片。",12,MUTED));
         ai.setOnCheckedChangeListener((b,checked)-> {aiEnabled=checked;slowFrames=0;generation++;enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText(checked?"实验 AI 已启用，等待视频帧":"原片播放 · AI 关闭");});
@@ -120,10 +120,10 @@ public final class MainActivity extends Activity {
             if(v.url.equals("asset:demo.mp4")){try(AssetFileDescriptor fd=getAssets().openFd("demo.mp4")){player.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}}
             else if(v.url.startsWith("file:")) {java.io.File file=new java.io.File(android.net.Uri.parse(v.url).getPath());java.io.File parent=new java.io.File(getFilesDir(),"enhanced");if(!file.getCanonicalPath().startsWith(parent.getCanonicalPath()+java.io.File.separator))throw new java.io.IOException("不允许的本机文件");player.setDataSource(file.getAbsolutePath());}
             else {Net.checked(v.url);player.setDataSource(v.url);}
-            player.setOnPreparedListener(p->{if(p!=player)return;prepared=true;seek.setMax(p.getDuration());if(store.position(v)<p.getDuration()-1000)p.seekTo(store.position(v));fitVideo();if(foreground){p.start();playButton.setText("暂停");playbackStatus.setText("原片播放 · AI 关闭");getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}else{playButton.setText("继续");playbackStatus.setText("已准备 · 后台暂停");}});
+            player.setOnPreparedListener(p->{if(p!=player)return;prepared=true;playButton.setEnabled(true);seek.setMax(p.getDuration());if(store.position(v)<p.getDuration()-1000)p.seekTo(store.position(v));fitVideo();if(foreground){setPlaying(true);playbackStatus.setText("原片播放 · AI 关闭");}else{playButton.setText("继续");playbackStatus.setText("已准备 · 后台暂停");}});
             player.setOnVideoSizeChangedListener((p,w,h)->fitVideo());
-            player.setOnCompletionListener(p->{if(p!=player)return;completed=true;generation++;store.progress(v,0);playButton.setText("重播");enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放结束");});
-            player.setOnErrorListener((p,what,extra)->{if(p!=player)return true;prepared=false;aiEnabled=false;generation++;enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放失败（"+what+"/"+extra+"）：地址不可用、格式不支持或需要授权。返回详情可重试。");return true;});
+            player.setOnCompletionListener(p->{if(p!=player)return;completed=true;getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);generation++;store.progress(v,0);playButton.setText("重播");enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放结束");});
+            player.setOnErrorListener((p,what,extra)->{if(p!=player)return true;releasePlayer();enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放失败（"+what+"/"+extra+"）：地址不可用、格式不支持或需要授权。返回详情可重试。");return true;});
             final MediaPlayer pending=player; player.prepareAsync(); ui.postDelayed(()->{if(player==pending&&!prepared&&screen.equals("player")){releasePlayer();playbackStatus.setText("准备超时。请返回详情后重试，或更换来源。");}},20000);
         }catch(Exception e){releasePlayer();playbackStatus.setText("播放失败："+safeError(e));}
     }
@@ -147,7 +147,7 @@ public final class MainActivity extends Activity {
         if(!modelReady){message("模型未就绪","请等待模型加载后重试。");return;}
         releasePlayer();screen="enhancing";current=v;page("逐帧 AI 增强");
         TextView progress=text("解码原片 → 完整帧神经推理 → 2× 编码 → 原音轨封装。正在读取媒体…",15,MUTED);body.addView(progress);
-        body.addView(text("非实时处理；不降采样、不跳帧。只支持最高 320×180、SDR、最长一小时的渐进式 MP4。原片保持不变。",13,MUTED));
+        body.addView(text("非实时处理；不降采样、不跳帧。只支持最高 320×180、SDR、最长一小时的单音轨渐进式 MP4；仅 BT.601/BT.709，广色域拒绝。取消会删除未完成副本，再试会从头处理；原片保持不变。",13,MUTED));
         java.util.concurrent.atomic.AtomicBoolean cancel=new java.util.concurrent.atomic.AtomicBoolean();enhancementCancel=cancel;
         body.addView(button("取消处理",()->{cancel.set(true);detail(v);}));
         inference.execute(()->{try{
@@ -155,13 +155,18 @@ public final class MainActivity extends Activity {
             ui.post(()->{if(cancel.get()||isFinishing()){file.delete();return;}Catalog.Video enhancedVideo=new Catalog.Video(v.id+"-enhanced-"+file.getName(),"AI 2× · "+v.title,"原分辨率逐帧 Real-ESRGAN 动画增强副本；画质收益因内容而异。",android.net.Uri.fromFile(file).toString(),"本机 AI 副本");store.progress(enhancedVideo,0);detail(enhancedVideo);});
         }catch(Exception e){ui.post(()->{if(!cancel.get()&&!isFinishing()){progress.setText("增强失败："+safeError(e));body.addView(button("返回影片",()->detail(v)));}});}});
     }
+    private void setPlaying(boolean active) {
+        if(player==null||!prepared)return;
+        if(active){player.start();playButton.setText("暂停");playbackStatus.setText(aiEnabled?"实验 AI 已启用，等待视频帧":"原片播放 · AI 关闭");getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}
+        else{player.pause();playButton.setText(completed?"重播":"继续");playbackStatus.setText(completed?"播放结束":"已暂停");getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}
+    }
     private void releasePlayer() {
-        generation++;aiEnabled=false;prepared=false;
+        generation++;aiEnabled=false;prepared=false;if(playButton!=null){playButton.setEnabled(false);playButton.setText("不可播放");}if(aiToggle!=null){aiToggle.setChecked(false);aiToggle.setEnabled(false);}
         if(player!=null){try{if(!completed)store.progress(current,player.getCurrentPosition());}catch(IllegalStateException ignored){}player.release();player=null;}
         if(surface!=null){surface.release();surface=null;}getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
     @Override public void onBackPressed(){if(screen.equals("enhancing")){if(enhancementCancel!=null)enhancementCancel.set(true);detail(current);}else if(screen.equals("player")){Catalog.Video v=current;releasePlayer();detail(v);}else if(!screen.equals("home"))home();else super.onBackPressed();}
     @Override protected void onResume(){super.onResume();foreground=true;}
-    @Override protected void onPause(){foreground=false;super.onPause();if(player!=null&&prepared){if(!completed)store.progress(current,player.getCurrentPosition());generation++;enhanced.setVisibility(View.INVISIBLE);player.pause();playButton.setText("继续");}}
+    @Override protected void onPause(){foreground=false;super.onPause();if(player!=null&&prepared){if(!completed)store.progress(current,player.getCurrentPosition());generation++;enhanced.setVisibility(View.INVISIBLE);setPlaying(false);}}
     @Override protected void onDestroy(){if(enhancementCancel!=null)enhancementCancel.set(true);releasePlayer();ui.removeCallbacksAndMessages(null);requestId++;network.shutdownNow();inference.shutdownNow();super.onDestroy();}
 }

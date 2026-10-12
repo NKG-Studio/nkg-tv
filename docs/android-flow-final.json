@@ -1,0 +1,246 @@
+{
+  "passed": true,
+  "checks": [
+    "home",
+    "search empty",
+    "favorite add",
+    "prepared and advancing",
+    "pause clears screen flag",
+    "pause freezes clock",
+    "resume",
+    "seek 5s",
+    "seek control 7s",
+    "back to detail",
+    "resume stored position",
+    "completion",
+    "completion clears screen flag",
+    "replay clock reset",
+    "prepared while background",
+    "no playback after background preparation",
+    "foreground explicit resume",
+    "explicit resume sets screen flag",
+    "30s sustained looping playback",
+    "history contains demo",
+    "favorite persisted",
+    "invalid source error",
+    "error back navigation",
+    "asynchronous MediaPlayer error",
+    "error clears screen flag",
+    "activity recreated",
+    "favorite survives Activity recreation",
+    "long-title header leaves scrollable content",
+    "sources back home"
+  ],
+  "samples": [
+    {
+      "elapsed_ms": 53107,
+      "position_ms": 3381,
+      "playing": true,
+      "pss_kib": 64032,
+      "process_cpu_ms": 29495
+    },
+    {
+      "elapsed_ms": 54279,
+      "position_ms": 4184,
+      "playing": true,
+      "pss_kib": 63840,
+      "process_cpu_ms": 30022
+    },
+    {
+      "elapsed_ms": 55663,
+      "position_ms": 4770,
+      "playing": true,
+      "pss_kib": 63904,
+      "process_cpu_ms": 30345
+    },
+    {
+      "elapsed_ms": 56871,
+      "position_ms": 5141,
+      "playing": true,
+      "pss_kib": 63928,
+      "process_cpu_ms": 30795
+    },
+    {
+      "elapsed_ms": 58191,
+      "position_ms": 5783,
+      "playing": true,
+      "pss_kib": 63924,
+      "process_cpu_ms": 31219
+    },
+    {
+      "elapsed_ms": 59410,
+      "position_ms": 6664,
+      "playing": true,
+      "pss_kib": 64000,
+      "process_cpu_ms": 31495
+    },
+    {
+      "elapsed_ms": 60757,
+      "position_ms": 7428,
+      "playing": true,
+      "pss_kib": 63272,
+      "process_cpu_ms": 31821
+    },
+    {
+      "elapsed_ms": 61864,
+      "position_ms": 8027,
+      "playing": true,
+      "pss_kib": 64494,
+      "process_cpu_ms": 32315
+    },
+    {
+      "elapsed_ms": 63213,
+      "position_ms": 8776,
+      "playing": true,
+      "pss_kib": 66618,
+      "process_cpu_ms": 32650
+    },
+    {
+      "elapsed_ms": 64344,
+      "position_ms": 9443,
+      "playing": true,
+      "pss_kib": 67502,
+      "process_cpu_ms": 33011
+    },
+    {
+      "elapsed_ms": 65420,
+      "position_ms": 9327,
+      "playing": true,
+      "pss_kib": 67806,
+      "process_cpu_ms": 33591
+    },
+    {
+      "elapsed_ms": 66884,
+      "position_ms": 10356,
+      "playing": true,
+      "pss_kib": 68054,
+      "process_cpu_ms": 34081
+    },
+    {
+      "elapsed_ms": 67967,
+      "position_ms": 10602,
+      "playing": true,
+      "pss_kib": 68534,
+      "process_cpu_ms": 34633
+    },
+    {
+      "elapsed_ms": 69458,
+      "position_ms": 11156,
+      "playing": true,
+      "pss_kib": 61897,
+      "process_cpu_ms": 35011
+    },
+    {
+      "elapsed_ms": 70558,
+      "position_ms": 11520,
+      "playing": true,
+      "pss_kib": 61913,
+      "process_cpu_ms": 35379
+    },
+    {
+      "elapsed_ms": 72032,
+      "position_ms": 93,
+      "playing": true,
+      "pss_kib": 61929,
+      "process_cpu_ms": 35656
+    },
+    {
+      "elapsed_ms": 73201,
+      "position_ms": 877,
+      "playing": true,
+      "pss_kib": 61945,
+      "process_cpu_ms": 35942
+    },
+    {
+      "elapsed_ms": 74384,
+      "position_ms": 1579,
+      "playing": true,
+      "pss_kib": 61949,
+      "process_cpu_ms": 36434
+    },
+    {
+      "elapsed_ms": 75711,
+      "position_ms": 1912,
+      "playing": true,
+      "pss_kib": 61969,
+      "process_cpu_ms": 36805
+    },
+    {
+      "elapsed_ms": 76877,
+      "position_ms": 2540,
+      "playing": true,
+      "pss_kib": 61993,
+      "process_cpu_ms": 37259
+    },
+    {
+      "elapsed_ms": 78056,
+      "position_ms": 3212,
+      "playing": true,
+      "pss_kib": 62013,
+      "process_cpu_ms": 37627
+    },
+    {
+      "elapsed_ms": 79191,
+      "position_ms": 3796,
+      "playing": true,
+      "pss_kib": 62057,
+      "process_cpu_ms": 37928
+    },
+    {
+      "elapsed_ms": 80327,
+      "position_ms": 4269,
+      "playing": true,
+      "pss_kib": 62229,
+      "process_cpu_ms": 38245
+    },
+    {
+      "elapsed_ms": 81605,
+      "position_ms": 4877,
+      "playing": true,
+      "pss_kib": 62777,
+      "process_cpu_ms": 38589
+    },
+    {
+      "elapsed_ms": 82646,
+      "position_ms": 5171,
+      "playing": true,
+      "pss_kib": 62936,
+      "process_cpu_ms": 38935
+    },
+    {
+      "elapsed_ms": 84125,
+      "position_ms": 6027,
+      "playing": true,
+      "pss_kib": 62868,
+      "process_cpu_ms": 39209
+    },
+    {
+      "elapsed_ms": 85231,
+      "position_ms": 6760,
+      "playing": true,
+      "pss_kib": 62880,
+      "process_cpu_ms": 39504
+    },
+    {
+      "elapsed_ms": 86407,
+      "position_ms": 7429,
+      "playing": true,
+      "pss_kib": 62732,
+      "process_cpu_ms": 39808
+    },
+    {
+      "elapsed_ms": 87566,
+      "position_ms": 7969,
+      "playing": true,
+      "pss_kib": 62748,
+      "process_cpu_ms": 39994
+    },
+    {
+      "elapsed_ms": 88673,
+      "position_ms": 8431,
+      "playing": true,
+      "pss_kib": 62780,
+      "process_cpu_ms": 40362
+    }
+  ]
+}
