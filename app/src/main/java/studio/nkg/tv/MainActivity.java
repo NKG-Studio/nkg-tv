@@ -41,7 +41,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int n) { return (int)(n*getResources().getDisplayMetrics().density); }
     private TextView text(String value,int sp,int color) { TextView v=new TextView(this); v.setText(value); v.setTextSize(sp); v.setTextColor(color); v.setPadding(dp(4),dp(6),dp(4),dp(6)); return v; }
-    private Button button(String label,Runnable run) { Button b=new Button(this); b.setText(label); b.setTextColor(MINT); b.setAllCaps(false); b.setOnClickListener(v->run.run()); return b; }
+    private Button button(String label,Runnable run) { Button b=new Button(this); b.setText(label); b.setTextColor(MINT); b.setTextSize(14); b.setAllCaps(false); android.graphics.drawable.GradientDrawable shape=new android.graphics.drawable.GradientDrawable();shape.setColor(PANEL);shape.setCornerRadius(dp(12));shape.setStroke(dp(1),Color.rgb(45,68,84));b.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Color.rgb(48,91,84)),shape,null)); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(48));lp.setMargins(dp(3),dp(5),dp(3),dp(5));b.setLayoutParams(lp); b.setOnClickListener(v->run.run()); return b; }
     private void page(String title) {
         root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(18),dp(12),dp(18),dp(12)); root.setBackgroundColor(BG);
         root.setOnApplyWindowInsetsListener((v,insets)-> { v.setPadding(dp(18),dp(12)+insets.getSystemWindowInsetTop(),dp(18),dp(12)+insets.getSystemWindowInsetBottom()); return insets; });

@@ -1,0 +1,1 @@
+Real-ESRGAN ncnn video-frame inference passed: 128ms (host CPU)

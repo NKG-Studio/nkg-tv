@@ -1,0 +1,1 @@
+JNI smoke passed. 160x90→320x180 host CPU p50=6.01ms p95=6.57ms

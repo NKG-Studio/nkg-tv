@@ -67,6 +67,25 @@ pub unsafe extern "C" fn nkg_upscale(
     }
 }
 
+/// Allocate a u32 frame buffer for the WASM host. Returns null for oversized requests.
+#[no_mangle]
+pub extern "C" fn nkg_alloc(count: usize) -> *mut u32 {
+    if count == 0 || count > 320 * 180 * 4 {
+        return std::ptr::null_mut();
+    }
+    Box::into_raw(vec![0u32; count].into_boxed_slice()) as *mut u32
+}
+/// # Safety
+/// Pointer and count must be an allocation returned by nkg_alloc, freed exactly once.
+#[no_mangle]
+pub unsafe extern "C" fn nkg_free(pointer: *mut u32, count: usize) {
+    if !pointer.is_null() {
+        drop(Box::from_raw(std::ptr::slice_from_raw_parts_mut(
+            pointer, count,
+        )));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

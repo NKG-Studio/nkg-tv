@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "search empty",
+    "detail",
+    "favorites persistence",
+    "local video playback",
+    "Rust WASM frame inference",
+    "history",
+    "invalid import",
+    "empty import"
+  ],
+  "inferenceStatus": "Rust 实验 AI · 25.2 ms/帧 · 采样预览",
+  "pageErrors": [],
+  "scope": "Chromium Linux UI test; not Windows native runtime"
+}

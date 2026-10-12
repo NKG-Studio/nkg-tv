@@ -9,3 +9,12 @@ android {
     lint { abortOnError true }
 }
 dependencies { testImplementation 'junit:junit:4.13.2'; testImplementation 'org.json:json:20240303' }
+tasks.named('preBuild') {
+    doFirst {
+        ['arm64-v8a','x86_64'].each { abi ->
+            if (!file("src/main/jniLibs/${abi}/libnkg_jni.so").exists()) {
+                throw new GradleException('Native library missing. Run tools/fetch-ncnn.sh and tools/build-native.sh first; see README.')
+            }
+        }
+    }
+}

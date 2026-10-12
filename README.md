@@ -1,6 +1,6 @@
 # NKG TV — Android preview
 
-在空仓库上独立实现的 Android 影视播放器预览。目标是 Android / iOS / PC；**当前只有 Android 应用，iOS/桌面界面尚未实现或构建**。Rust 共享核心及 C ABI 可移植，并不等于三端已完成。
+在空仓库上独立实现的 Android 影视播放器预览。目标是 Android / iOS / PC；**当前已有 Android APK 和 Windows x64 EXE 预览，Windows 原生运行未验证；iOS 尚未实现或构建**。Rust 共享核心及 C ABI 可移植，并不等于三端已完成。
 
 ## 当前可用
 
@@ -54,6 +54,7 @@ APK：`app/build/outputs/apk/debug/app-debug.apk`，包名 `studio.nkg.tv`，And
 - `core/` Rust 推理、C ABI、JNI 和 ncnn C++ 适配；无 Rust 第三方 crate。
 - `tools/` 构建/训练/原片生成。
 - `tests/` 主机 JNI/模型烟测；Android JVM 测试位于 `app/src/test/`。
+- `desktop/` Windows 原生 WebView2 窗口、内容访问与本机状态、Rust WASM 实验推理。
 - `docs/TEST_REPORT.md` 实际验证结果与未验证事项。
 - `THIRD_PARTY.md` 官方来源、许可证和模型 SHA256。
 

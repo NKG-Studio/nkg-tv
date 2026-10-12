@@ -22,3 +22,12 @@
 ## Product reference
 
 LibreSpark/LibreTV, AGPL-3.0: https://github.com/LibreSpark/LibreTV/blob/main/LICENSE . Only product flow was studied. No LibreTV code, artwork, source list or implementation copied. This repository is an independent native Android implementation.
+
+## Windows preview additions
+
+- Go 1.24.2 standard library: BSD-style Go license, `desktop/licenses/Go.txt`.
+- `github.com/jchv/go-webview2` pinned `v0.0.0-20260205173254-56598839c808`: MIT, `desktop/licenses/go-webview2.txt`.
+- `go-winloader` pinned `v0.0.0-20250406163304-c1995be93bd1`: MIT, `desktop/licenses/go-winloader.txt`; loads the embedded official WebView2Loader.
+- WebView2Loader.dll: Microsoft BSD-style permissive redistribution license, full text `desktop/licenses/WebView2Loader.txt`. This is the loader, not the browser runtime. The Windows EXE requires an existing WebView2 Runtime and never silently installs it or accepts new runtime terms.
+- `golang.org/x/sys` pinned in `desktop/go.mod`: BSD-style, `desktop/licenses/x-sys.txt`.
+- Windows Rust WASM uses original TinySR2, with Rust notices and project license bundled under `desktop/licenses/`. No Windows SDK, MinGW, Wine or paid build service was used.
