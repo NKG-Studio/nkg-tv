@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "width": 854,
+  "height": 480,
+  "scale": 2,
+  "reference_tiles": 9,
+  "compared_bytes": 6558720,
+  "max_channel_error": 0,
+  "mean_channel_error": 0.0,
+  "scope": "Full original resolution; CPU reference uses halo tiles, GPU uses a full-frame dispatch; no resolution reduction"
+}

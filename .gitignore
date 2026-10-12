@@ -8,3 +8,6 @@ artifacts/
 .tools/
 __pycache__/
 app/src/main/jniLibs/
+
+app/src/debug/jniLibs/
+app/src/debug/assets/tinysr2.spv

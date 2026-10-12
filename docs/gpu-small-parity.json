@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "width": 64,
+  "height": 36,
+  "scale": 2,
+  "compared_bytes": 36864,
+  "max_channel_error": 0,
+  "mean_channel_error": 0.0,
+  "scope": "Vulkan shader versus actual Rust original TinySR2 model; no film quality or device FPS claim"
+}

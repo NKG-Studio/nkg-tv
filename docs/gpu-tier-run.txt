@@ -1,0 +1,5 @@
+artifacts/gpu-tiers/input.argb: 1 file pushed, 0 skipped. 232.7 MB/s (1639680 bytes in 0.007s)
+/data/local/tmp/gpu-output-tier.argb: 1 file pulled, 0 skipped. 47.5 MB/s (6558720 bytes in 0.132s)
+Completed source-native 854x480 Vulkan/reference test
+artifacts/gpu-tiers/input.argb: 1 file pushed, 0 skipped. 204.3 MB/s (3686400 bytes in 0.017s)
+FAIL compute completion timeout: VkResult=2

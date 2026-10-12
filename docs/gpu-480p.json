@@ -1,0 +1,1 @@
+{"passed":true,"device":"SwiftShader Device (Subzero)","device_type":4,"software":true,"width":854,"height":480,"scale":2,"setup_ms":347.938,"warmup":2,"dispatches":3,"p50_upload_compute_readback_ms":6383.87,"p95_upload_compute_readback_ms":7303.06,"scope":"Synthetic repeated-frame compute benchmark, NOT video playback FPS or production image quality"}
