@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"strings"
+	"testing"
+)
 
 func TestCatalog(t *testing.T) {
 	good := []byte(`{"format":"nkg-catalog-v1","videos":[{"id":"1","title":"片名","url":"https://example.org/a.mp4"}]}`)
@@ -21,5 +25,18 @@ func TestURLs(t *testing.T) {
 	}
 	if validURL("https://example.org/a") != nil {
 		t.Fatal("https rejected")
+	}
+}
+
+func TestTitlePersistenceLimits(t *testing.T) {
+	for _, s := range []struct {
+		title string
+		ok    bool
+	}{{strings.Repeat("中", 256), true}, {strings.Repeat("a", 257), false}, {strings.Repeat("😀", 129), false}} {
+		data, _ := json.Marshal(Catalog{Format: "nkg-catalog-v1", Videos: []Video{{ID: "x", Title: s.title, URL: "https://example.org/a.mp4"}}})
+		_, e := parseCatalog(data)
+		if (e == nil) != s.ok {
+			t.Fatalf("UTF16 title consistency: %v", e)
+		}
 	}
 }

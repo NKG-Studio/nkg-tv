@@ -6,8 +6,6 @@ import (
 	"crypto/rand"
 	"embed"
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
 	webview2 "github.com/jchv/go-webview2"
 	"io/fs"
 	"net"
@@ -45,24 +43,9 @@ func main() {
 		return
 	}
 	defer w.Destroy()
-	path := filepath.Join(dir, "state.json")
-	w.Bind("nativeLoad", func() (string, error) {
-		b, e := os.ReadFile(path)
-		if os.IsNotExist(e) {
-			return "{}", nil
-		}
-		return string(b), e
-	})
-	w.Bind("nativeSave", func(s string) error {
-		if len(s) > 4<<20 || !json.Valid([]byte(s)) {
-			return fmt.Errorf("invalid state")
-		}
-		tmp := path + ".tmp"
-		if e := os.WriteFile(tmp, []byte(s), 0600); e != nil {
-			return e
-		}
-		return os.Rename(tmp, path)
-	})
+	store := &stateStore{path: filepath.Join(dir, "state.json")}
+	w.Bind("nativeLoad", store.Load)
+	w.Bind("nativeSave", store.Save)
 	w.Bind("nativeCatalog", func(raw string) (Catalog, error) { return loadCatalog(raw) })
 	tokenBytes := make([]byte, 24)
 	if _, e = rand.Read(tokenBytes); e != nil {

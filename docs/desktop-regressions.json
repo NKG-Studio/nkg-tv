@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": [
+    "bad catalog does not discard favorites",
+    "bad catalog does not discard history",
+    "late response cannot replace imported source",
+    "CORS-enabled remote media permits Rust frame inference",
+    "no-CORS media falls back to original playback"
+  ],
+  "scope": "Linux Chromium + mocked native bridge; Go parser/persistence separately tested"
+}

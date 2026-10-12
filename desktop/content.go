@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"unicode/utf16"
 )
 
 const defaultFeed = "https://tv.lfzxb.top/sources/feed.json"
@@ -51,7 +52,7 @@ func parseCatalog(data []byte) (Catalog, error) {
 	}
 	ids := map[string]bool{}
 	for _, v := range c.Videos {
-		if strings.TrimSpace(v.ID) == "" || len(v.ID) > 128 || strings.TrimSpace(v.Title) == "" || len(v.Title) > 1024 || len(v.URL) > 4096 {
+		if strings.TrimSpace(v.ID) == "" || len(utf16.Encode([]rune(v.ID))) > 128 || strings.TrimSpace(v.Title) == "" || len(utf16.Encode([]rune(v.Title))) > 256 || len(utf16.Encode([]rune(v.URL))) > 4096 {
 			return c, errors.New("影片字段缺失或过长")
 		}
 		if ids[v.ID] {
