@@ -1,0 +1,12 @@
+{
+  "checks_passed": 20,
+  "sample_count": 30,
+  "wall_span_ms": 34675,
+  "media_advanced_ms": 19849,
+  "media_to_wall_ratio": 0.5724297043979812,
+  "pss_min_kib": 62171,
+  "pss_max_kib": 67972,
+  "app_cpu_delta_ms": 9749,
+  "environment": "Android 10 x86_64, QEMU TCG without KVM",
+  "interpretation": "continuous playback and controls passed; source clock slower than wall clock, not evidence of real-time smoothness"
+}

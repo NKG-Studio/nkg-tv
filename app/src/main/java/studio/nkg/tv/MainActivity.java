@@ -21,6 +21,8 @@ public final class MainActivity extends Activity {
     private String screen="home", query="", feedError="订阅尚未刷新";
     private Catalog.Video current; private MediaPlayer player; private Surface surface; private TextureView texture; private ImageView enhanced;
     private Switch aiToggle; private TextView playbackStatus; private SeekBar seek; private Button playButton; private boolean prepared, aiEnabled, aiBusy, completed;
+    private java.util.concurrent.atomic.AtomicBoolean enhancementCancel;
+    private boolean foreground;
     private int generation, slowFrames, requestId; private boolean modelReady; private long lastFrame;
     private int frameWidth=160,frameHeight=90;
     private final Runnable ticker=new Runnable() { public void run() {
@@ -66,6 +68,8 @@ public final class MainActivity extends Activity {
     private void detail(Catalog.Video v) {
         current=v; screen="detail"; page(v.title); body.addView(text(v.source,14,MINT)); body.addView(text(v.description,16,MUTED));
         body.addView(button(store.position(v)>0?"继续播放 · "+store.position(v)/1000+" 秒":"开始播放",()->play(v)));
+        body.addView(button("逐帧生成 AI 2× 副本",()->enhance(v)));
+        body.addView(text("完整处理每一帧后再播放，保留音频与时间戳。当前限最高 320×180 SDR 渐进式 MP4；不会先降采样。处理可能明显慢于片长，可取消。",12,MUTED));
         body.addView(button(store.favorite(v)?"取消收藏":"收藏影片",()->{store.toggle(v); detail(v);}));
         body.addView(text("播放地址："+v.url,12,MUTED)); body.addView(text("仅播放你有权访问的内容。支持系统解码器可播放的 MP4/HLS；不绕过 DRM。",13,MUTED)); body.addView(button("返回发现",this::home)); nav();
     }
@@ -114,11 +118,12 @@ public final class MainActivity extends Activity {
             player=new MediaPlayer(); surface=new Surface(st);player.setSurface(surface);
             player.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MOVIE).build());
             if(v.url.equals("asset:demo.mp4")){try(AssetFileDescriptor fd=getAssets().openFd("demo.mp4")){player.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}}
+            else if(v.url.startsWith("file:")) {java.io.File file=new java.io.File(android.net.Uri.parse(v.url).getPath());java.io.File parent=new java.io.File(getFilesDir(),"enhanced");if(!file.getCanonicalPath().startsWith(parent.getCanonicalPath()+java.io.File.separator))throw new java.io.IOException("不允许的本机文件");player.setDataSource(file.getAbsolutePath());}
             else {Net.checked(v.url);player.setDataSource(v.url);}
-            player.setOnPreparedListener(p->{if(p!=player)return;prepared=true;seek.setMax(p.getDuration());if(store.position(v)<p.getDuration()-1000)p.seekTo(store.position(v));fitVideo();p.start();playbackStatus.setText("原片播放 · AI 关闭");getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);});
+            player.setOnPreparedListener(p->{if(p!=player)return;prepared=true;seek.setMax(p.getDuration());if(store.position(v)<p.getDuration()-1000)p.seekTo(store.position(v));fitVideo();if(foreground){p.start();playButton.setText("暂停");playbackStatus.setText("原片播放 · AI 关闭");getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}else{playButton.setText("继续");playbackStatus.setText("已准备 · 后台暂停");}});
             player.setOnVideoSizeChangedListener((p,w,h)->fitVideo());
-            player.setOnCompletionListener(p->{completed=true;generation++;store.progress(v,0);playButton.setText("重播");enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放结束");});
-            player.setOnErrorListener((p,what,extra)->{prepared=false;aiEnabled=false;generation++;enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放失败（"+what+"/"+extra+"）：地址不可用、格式不支持或需要授权。返回详情可重试。");return true;});
+            player.setOnCompletionListener(p->{if(p!=player)return;completed=true;generation++;store.progress(v,0);playButton.setText("重播");enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放结束");});
+            player.setOnErrorListener((p,what,extra)->{if(p!=player)return true;prepared=false;aiEnabled=false;generation++;enhanced.setVisibility(View.INVISIBLE);playbackStatus.setText("播放失败（"+what+"/"+extra+"）：地址不可用、格式不支持或需要授权。返回详情可重试。");return true;});
             final MediaPlayer pending=player; player.prepareAsync(); ui.postDelayed(()->{if(player==pending&&!prepared&&screen.equals("player")){releasePlayer();playbackStatus.setText("准备超时。请返回详情后重试，或更换来源。");}},20000);
         }catch(Exception e){releasePlayer();playbackStatus.setText("播放失败："+safeError(e));}
     }
@@ -138,12 +143,25 @@ public final class MainActivity extends Activity {
                 if(result==null||elapsed>350){slowFrames++;if(result==null||slowFrames>=3){toggle.setChecked(false);playbackStatus.setText("AI 已自动关闭：推理失败或连续超时，已恢复原片。");}return;}
                 slowFrames=0;Bitmap bitmap=Bitmap.createBitmap(result,width*2,height*2,Bitmap.Config.ARGB_8888);enhanced.setImageBitmap(bitmap);enhanced.setVisibility(View.VISIBLE);playbackStatus.setText("实验 AI 2× · "+elapsed+" ms/帧 · 非实时原速画质");});});
     }
+    private void enhance(Catalog.Video v) {
+        if(!modelReady){message("模型未就绪","请等待模型加载后重试。");return;}
+        releasePlayer();screen="enhancing";current=v;page("逐帧 AI 增强");
+        TextView progress=text("解码原片 → 完整帧神经推理 → 2× 编码 → 原音轨封装。正在读取媒体…",15,MUTED);body.addView(progress);
+        body.addView(text("非实时处理；不降采样、不跳帧。只支持最高 320×180、SDR、最长一小时的渐进式 MP4。原片保持不变。",13,MUTED));
+        java.util.concurrent.atomic.AtomicBoolean cancel=new java.util.concurrent.atomic.AtomicBoolean();enhancementCancel=cancel;
+        body.addView(button("取消处理",()->{cancel.set(true);detail(v);}));
+        inference.execute(()->{try{
+            java.io.File file=new VideoEnhancer(this,cancel).run(v.url,(frames,pts,duration,elapsed)->ui.post(()->{if(!cancel.get()&&screen.equals("enhancing"))progress.setText("已增强 "+frames+" 帧 · "+Math.min(100,pts*100/Math.max(1,duration))+"% · 用时 "+elapsed/1000+" 秒");}));
+            ui.post(()->{if(cancel.get()||isFinishing()){file.delete();return;}Catalog.Video enhancedVideo=new Catalog.Video(v.id+"-enhanced-"+file.getName(),"AI 2× · "+v.title,"原分辨率逐帧 Real-ESRGAN 动画增强副本；画质收益因内容而异。",android.net.Uri.fromFile(file).toString(),"本机 AI 副本");store.progress(enhancedVideo,0);detail(enhancedVideo);});
+        }catch(Exception e){ui.post(()->{if(!cancel.get()&&!isFinishing()){progress.setText("增强失败："+safeError(e));body.addView(button("返回影片",()->detail(v)));}});}});
+    }
     private void releasePlayer() {
         generation++;aiEnabled=false;prepared=false;
         if(player!=null){try{if(!completed)store.progress(current,player.getCurrentPosition());}catch(IllegalStateException ignored){}player.release();player=null;}
         if(surface!=null){surface.release();surface=null;}getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
-    @Override public void onBackPressed(){if(screen.equals("player")){Catalog.Video v=current;releasePlayer();detail(v);}else if(!screen.equals("home"))home();else super.onBackPressed();}
-    @Override protected void onPause(){super.onPause();if(player!=null&&prepared){if(!completed)store.progress(current,player.getCurrentPosition());generation++;enhanced.setVisibility(View.INVISIBLE);player.pause();playButton.setText("继续");}}
-    @Override protected void onDestroy(){releasePlayer();ui.removeCallbacksAndMessages(null);requestId++;network.shutdownNow();inference.shutdownNow();super.onDestroy();}
+    @Override public void onBackPressed(){if(screen.equals("enhancing")){if(enhancementCancel!=null)enhancementCancel.set(true);detail(current);}else if(screen.equals("player")){Catalog.Video v=current;releasePlayer();detail(v);}else if(!screen.equals("home"))home();else super.onBackPressed();}
+    @Override protected void onResume(){super.onResume();foreground=true;}
+    @Override protected void onPause(){foreground=false;super.onPause();if(player!=null&&prepared){if(!completed)store.progress(current,player.getCurrentPosition());generation++;enhanced.setVisibility(View.INVISIBLE);player.pause();playButton.setText("继续");}}
+    @Override protected void onDestroy(){if(enhancementCancel!=null)enhancementCancel.set(true);releasePlayer();ui.removeCallbacksAndMessages(null);requestId++;network.shutdownNow();inference.shutdownNow();super.onDestroy();}
 }

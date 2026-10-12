@@ -15,7 +15,7 @@
 
 - 软件模拟器 Android 10 已启动，APK 安装返回 Success；启动命令超时，随后出现系统 UI 无响应弹窗。运行环境为无 KVM 的软件模拟，暂不能证明应用流程稳定或顺滑。没有真机数据。
 - 用户订阅 `https://tv.lfzxb.top/sources/feed.json`：云端 CONNECT 403，无响应正文；网页读取也失败。不能推断源站故障。待用户提供 JSON 内容；当前只支持自有 nkg-catalog-v1 目录，不声称已适配指定源。
-- APK 原生 UI 的搜索/详情/播放/返回/收藏/历史全流程运行验证尚未完成。
+- 原先 APK UIAutomator 全流程未完成；现已由下述第四里程碑直接 instrumentation 验证替代。
 - Android AI 路径是连续 TextureView 帧→ncnn→ImageView 采样预览，160 像素宽、最大约 8 fps、默认关闭、连续慢帧回退原片。尚非全分辨率同步实时增强。
 - Windows x64 GUI EXE 已在 Linux 交叉编译成功（Go 1.24.2，CGO=0），PE32+ / GUI / x86-64；无 Authenticode 签名。Windows 原生执行、WebView2 Runtime 兼容和 GPU 性能未验证。iOS 未实现和验证。
 - 不满足“首个安卓和 PC 都美观、动画顺滑、性能优秀、稳定可用、直接解析实际订阅”的最终验收。此提交仅为可审查里程碑。
@@ -35,3 +35,9 @@
 软件模拟器截图显示离线 MP4 已播放到 00:00:11.958 并显示「播放结束」；MediaPlayer dumpsys 记录 H.264 视频与 AAC 音频解码器、媒体时钟和处理帧消息。这证明基础离线播放运行过，但 UIAutomator 在活动视频页面等待空闲超时，完整自动化仍未通过。模拟器无音频输出，不能声称听感验证或真机流畅度。
 
 Library 按规定使用最新 prepared-upload helper 尝试保存四个阶段产物，但在 tools/list 服务发现阶段报 network；在获准的云端权限重试后相同失败，尚未调用 prepare/finalize，无 Library 文件 ID 或版本，不能声称上传成功。阶段文件保存在本仓库 artifacts/，原仓库源码已推送；没有发布 Release。
+
+## 第四里程碑：Android 运行验证更新
+
+直接 instrumentation 已通过 20 项检查，覆盖搜索空结果、详情、收藏、播放/暂停/恢复、两种跳转、完成/重播、后台准备不自动播放、续播、返回、历史和来源失败提示。30 次性能采样仅体现无 KVM 软件模拟环境：媒体时钟约为墙钟 0.57 倍，不代表真机流畅。
+
+新增离线完整帧 Real-ESRGAN 2× 转码：4/4 帧从 64×36 到 128×72，视频 PTS 全部保持，23 个 AAC 包的内容及 PTS 全部保持；耗时 205.385 秒。详见 MILESTONE-4.md 和 android-enhancer.json。这与原先 160 像素采样预览是两个独立功能；仍不声称全分辨率实时播放或画质改善。缺少真机、长片和 Windows 原生验证。

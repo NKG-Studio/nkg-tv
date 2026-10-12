@@ -3,7 +3,7 @@ android {
     namespace 'studio.nkg.tv'
     compileSdk 35
     ndkVersion '27.2.12479018'
-    defaultConfig { applicationId 'studio.nkg.tv'; minSdk 26; targetSdk 35; versionCode 1; versionName '0.1.0-preview' }
+    defaultConfig { applicationId 'studio.nkg.tv'; minSdk 26; targetSdk 35; versionCode 1; versionName '0.1.0-preview'; testInstrumentationRunner (project.findProperty('testRunner') ?: 'studio.nkg.tv.FlowInstrumentation') }
     buildTypes { release { minifyEnabled false } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     lint { abortOnError true }
