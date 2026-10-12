@@ -1,0 +1,10 @@
+.gradle/
+**/build/
+core/target/
+local.properties
+artifacts/
+*.keystore
+*.jks
+.tools/
+__pycache__/
+app/src/main/jniLibs/

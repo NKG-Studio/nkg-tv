@@ -1,0 +1,6 @@
+{
+  "test": "decoded procedural MP4 frame at 3s, area downsampled 2x",
+  "realesrgan_psnr": 22.820097181402247,
+  "nearest_psnr": 23.894417585495805,
+  "scope": "procedural frame only; natural film and temporal quality not validated"
+}

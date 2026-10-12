@@ -1,0 +1,14 @@
+{
+  "model": "TinySR2 synthetic preview",
+  "architecture": "3x3x1 -> 24 ReLU -> 4 residual subpixels, channel independent",
+  "training_seed": 20261012,
+  "training_images": 160,
+  "validation_images": 24,
+  "iterations": 3000,
+  "heldout_mse": 0.0007649341132491827,
+  "nearest_mse": 0.0017834774916991591,
+  "heldout_psnr_db": 31.163759707086093,
+  "nearest_psnr_db": 27.48732367285838,
+  "scope": "synthetic validation only, no claim on film quality or temporal stability",
+  "weights_sha256": "edcf4fe03cde5162fa24a0d7f799c374cd20db01eeab5a70967abbf552981db5"
+}

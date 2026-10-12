@@ -1,0 +1,10 @@
+[package]
+name = "nkg_core"
+version = "0.1.0"
+edition = "2021"
+[lib]
+crate-type = ["rlib", "staticlib"]
+[profile.release]
+opt-level = 3
+panic = "abort"
+lto = true
